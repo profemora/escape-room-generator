@@ -8,68 +8,69 @@
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Nunito:wght@400;700&display=swap');
-        body { font-family: 'Nunito', sans-serif; background-color: #FFF5E4; }
-        .fredoka { font-family: 'Fredoka', sans-serif; }
-    </style>
 </head>
-<body>
+<body class="bg-[#FFF5E4]">
     <div id="root"></div>
 
     <script type="text/babel">
         const { useState } = React;
 
         const App = () => {
-            const [apiKey, setApiKey] = useState(localStorage.getItem('user_gemini_key') || '');
-            const [isLocked, setIsLocked] = useState(!localStorage.getItem('user_gemini_key'));
+            const [apiKey, setApiKey] = useState(localStorage.getItem('gemini_key') || '');
+            const [isAuth, setIsAuth] = useState(!!localStorage.getItem('gemini_key'));
             const [text, setText] = useState('');
             const [status, setStatus] = useState('IDLE');
+            const [downloadUrl, setDownloadUrl] = useState(null);
 
-            const saveKey = () => {
+            const handleAuth = () => {
                 if (apiKey.startsWith('AIza')) {
-                    localStorage.setItem('user_gemini_key', apiKey);
-                    setIsLocked(false);
+                    localStorage.setItem('gemini_key', apiKey);
+                    setIsAuth(true);
                 } else {
-                    alert("Chiave non valida. Assicurati che inizi con AIza...");
+                    alert("Chiave non valida!");
                 }
             };
 
-            const handleGenerate = async () => {
+            const generateGame = async () => {
                 setStatus('GENERATING');
                 try {
-                    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
+                    // Chiamata diretta a Gemini 1.5 Flash (usando la tua logica)
+                    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            contents: [{ parts: [{ text: "Create an educational escape room in English based on: " + text }] }]
+                            contents: [{ parts: [{ text: "Agisci come esperto creatore di contenuti. Genera una Escape Room educativa basata su questo testo: " + text }] }],
+                            generationConfig: { responseMimeType: "application/json" }
                         })
                     });
-                    if (response.ok) setStatus('SUCCESS');
-                    else throw new Error();
+
+                    const result = await response.json();
+                    const gameData = JSON.parse(result.candidates[0].content.parts[0].text);
+
+                    // Trasformazione in HTML per lo studente
+                    const blob = new Blob([`<!DOCTYPE html><html><body><h1>${gameData.title}</h1><p>${gameData.introText}</p></body></html>`], { type: 'text/html' });
+                    setDownloadUrl(URL.createObjectURL(blob));
+                    setStatus('SUCCESS');
                 } catch (e) {
-                    alert("Errore! La chiave potrebbe essere scaduta o errata.");
+                    console.error(e);
+                    alert("Errore durante la generazione. Verifica la tua chiave API.");
                     setStatus('IDLE');
                 }
             };
 
-            if (isLocked) {
+            if (!isAuth) {
                 return (
-                    <div className="min-h-screen flex items-center justify-center p-6 text-center">
-                        <div className="bg-white p-8 rounded-3xl shadow-xl max-w-md w-full border-b-8 border-blue-200">
-                            <h2 className="fredoka text-2xl mb-4">Configurazione Personale 🔒</h2>
-                            <p className="text-gray-500 mb-6 text-sm">Per non consumare i crediti degli altri, inserisci la tua API Key gratuita di Google.</p>
+                    <div className="min-h-screen flex items-center justify-center p-6">
+                        <div className="bg-white p-8 rounded-3xl shadow-xl max-w-md w-full text-center">
+                            <h2 className="text-2xl font-bold mb-4">Inserisci API Key</h2>
                             <input 
                                 type="password" 
                                 className="w-full p-3 border-2 rounded-xl mb-4 text-center outline-none"
-                                placeholder="Incolla la tua chiave AIza..."
+                                placeholder="AIzaSy..."
                                 value={apiKey}
                                 onChange={(e) => setApiKey(e.target.value)}
                             />
-                            <button onClick={saveKey} className="w-full py-3 bg-blue-400 text-white font-bold rounded-full hover:bg-blue-500 transition-all">
-                                Salva e Inizia
-                            </button>
-                            <a href="https://aistudio.google.com/app/apikey" target="_blank" className="block mt-4 text-xs text-blue-400 underline">Ottieni la tua chiave gratis qui</a>
+                            <button onClick={handleAuth} className="w-full py-3 bg-blue-400 text-white font-bold rounded-full">Attiva</button>
                         </div>
                     </div>
                 );
@@ -77,31 +78,27 @@
 
             return (
                 <div className="max-w-4xl mx-auto p-8">
-                    <div className="flex justify-between items-center mb-10">
-                        <h1 className="fredoka text-3xl text-gray-800">Escape Room Generator</h1>
-                        <button onClick={() => {localStorage.clear(); window.location.reload();}} className="text-xs text-gray-400 hover:text-red-500">Rimuovi mia Chiave</button>
-                    </div>
-
-                    <div className="bg-white rounded-3xl shadow-xl p-8 border-b-8 border-pink-200">
+                    <h1 className="text-3xl font-bold text-center mb-8">Escape Room Generator</h1>
+                    <div className="bg-white p-8 rounded-3xl shadow-lg border-b-8 border-pink-200">
                         {status === 'IDLE' && (
                             <>
                                 <textarea 
-                                    className="w-full h-64 p-5 bg-gray-50 rounded-2xl border-none outline-none focus:ring-2 ring-pink-100 mb-4"
+                                    className="w-full h-64 p-4 bg-gray-50 rounded-xl mb-4 outline-none"
                                     placeholder="Incolla qui il testo della lezione..."
                                     value={text}
                                     onChange={(e) => setText(e.target.value)}
                                 />
-                                <button onClick={handleGenerate} className="w-full py-4 bg-pink-300 text-white font-bold rounded-full shadow-lg hover:bg-pink-400 transition-all">
-                                    Genera Escape Room ✨
-                                </button>
+                                <button onClick={generateGame} className="w-full py-4 bg-pink-300 text-white font-bold rounded-full">Genera Gioco ✨</button>
                             </>
                         )}
-                        {status === 'GENERATING' && <div className="py-20 text-center fredoka text-xl">L'IA sta lavorando...</div>}
+                        {status === 'GENERATING' && <div className="text-center py-10 animate-pulse text-xl">L'IA sta creando il gioco...</div>}
                         {status === 'SUCCESS' && (
-                            <div className="py-10 text-center">
-                                <h2 className="text-2xl font-bold mb-6">Completato!</h2>
-                                <button className="py-4 px-10 bg-green-400 text-white font-bold rounded-full shadow-md">Scarica HTML Studenti</button>
-                                <button onClick={() => setStatus('IDLE')} className="block mx-auto mt-4 text-sm text-gray-400 underline">Torna indietro</button>
+                            <div className="text-center py-10">
+                                <h2 className="text-2xl font-bold mb-6 text-green-500">Gioco Creato!</h2>
+                                <a href={downloadUrl} download="escape-room.html" className="inline-block py-4 px-10 bg-blue-400 text-white font-bold rounded-full shadow-md">
+                                    Scarica File Studenti
+                                </a>
+                                <button onClick={() => setStatus('IDLE')} className="block mx-auto mt-6 text-sm text-gray-400 underline">Crea un'altra</button>
                             </div>
                         )}
                     </div>
