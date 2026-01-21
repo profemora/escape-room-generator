@@ -3,86 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Escape Room Generator</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Escape Room Generator - Pro</title>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module" src="https://unpkg.com/lucide@latest"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Nunito:wght@400;700&display=swap');
         body { font-family: 'Nunito', sans-serif; background-color: #FFF5E4; }
-        h1 { font-family: 'Fredoka', sans-serif; }
+        .fredoka { font-family: 'Fredoka', sans-serif; }
     </style>
 </head>
 <body>
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect } = React;
+        const { useState } = React;
 
-        // Mock delle icone per farle funzionare senza import complessi
-        const Icon = ({ name, className }) => {
-            useEffect(() => { lucide.createIcons(); }, []);
-            return <i data-lucide={name} className={className}></i>;
+        // --- CONFIGURAZIONE ---
+        // ATTENZIONE: Incolla la tua API KEY qui sotto tra le virgolette per far funzionare l'IA
+        const MY_API_KEY = "LA_TUA_API_KEY_QUI";
+
+        // --- LOGICA GENERATORE HTML (dal tuo htmlGenerator.ts) ---
+        const generateEscapeRoomHtml = (data, isPreview = false) => {
+            const serializedData = JSON.stringify(data).replace(/</g, '\\u003c');
+            // Qui viene inserito il template che hai creato tu per gli studenti
+            return `<!DOCTYPE html>...[Il tuo template completo]...`; 
         };
 
+        // --- COMPONENTE PRINCIPALE (dal tuo App.tsx) ---
         const App = () => {
             const [inputText, setInputText] = useState('');
-            const [status, setStatus] = useState('IDLE'); // IDLE, GENERATING, SUCCESS
+            const [status, setStatus] = useState('IDLE'); // IDLE, GENERATING, SUCCESS, ERROR
 
-            const handleGenerate = () => {
+            const handleGenerate = async () => {
+                if (!inputText.trim()) return;
                 setStatus('GENERATING');
-                // Simulazione generazione (qui andrebbe la chiamata a Gemini)
-                setTimeout(() => setStatus('SUCCESS'), 2000);
+                
+                try {
+                    // Logica di chiamata a Gemini (dal tuo geminiService.ts)
+                    // Nota: In un file unico usiamo fetch diretto o la libreria caricata via script
+                    console.log("Generazione in corso per:", inputText);
+                    
+                    // Simulazione per test (da sostituire con chiamata reale)
+                    setTimeout(() => setStatus('SUCCESS'), 3000);
+                } catch (error) {
+                    setStatus('ERROR');
+                }
             };
 
             return (
                 <div className="min-h-screen p-4 md:p-8">
                     <div className="max-w-4xl mx-auto">
                         <header className="mb-10 text-center">
-                            <div className="inline-flex items-center justify-center p-3 bg-white rounded-full shadow-md mb-4">
-                                <h1 className="text-3xl font-bold text-gray-800">Escape Room Generator</h1>
-                            </div>
-                            <p className="text-lg text-gray-500">Trasforma i tuoi testi in avventure interattive.</p>
+                            <h1 className="text-4xl font-bold text-gray-800 fredoka mb-4">
+                                🧠 Escape Room Generator
+                            </h1>
+                            <p className="text-gray-500">Trasforma i tuoi testi in avventure interattive per i tuoi studenti.</p>
                         </header>
 
-                        <div className="bg-white rounded-3xl shadow-xl overflow-hidden border-b-8 border-[#AEC6CF]">
+                        <div className="bg-white rounded-3xl shadow-xl p-8 border-b-8 border-blue-200">
                             {status === 'IDLE' && (
-                                <div className="p-6 md:p-10">
-                                    <textarea
-                                        className="w-full h-64 p-5 rounded-xl border-2 border-gray-50 bg-gray-50 outline-none text-lg resize-none"
-                                        placeholder="Incolla qui i tuoi appunti..."
+                                <>
+                                    <textarea 
+                                        className="w-full h-64 p-4 bg-gray-50 rounded-xl border-2 border-transparent focus:border-blue-300 outline-none resize-none"
+                                        placeholder="Incolla qui il testo della lezione..."
                                         value={inputText}
                                         onChange={(e) => setInputText(e.target.value)}
                                     />
-                                    <div className="mt-8 flex justify-end">
-                                        <button
-                                            onClick={handleGenerate}
-                                            className="px-8 py-4 font-bold text-white bg-[#FFB3BA] rounded-full hover:bg-[#ff9aa2] shadow-lg"
-                                        >
-                                            Genera Escape Room
-                                        </button>
-                                    </div>
-                                </div>
+                                    <button 
+                                        onClick={handleGenerate}
+                                        className="mt-6 w-full py-4 bg-pink-300 hover:bg-pink-400 text-white font-bold rounded-full shadow-lg transition-transform hover:-translate-y-1"
+                                    >
+                                        Genera Escape Room
+                                    </button>
+                                </>
                             )}
 
                             {status === 'GENERATING' && (
-                                <div className="p-20 text-center">
-                                    <div className="animate-spin rounded-full h-16 w-16 border-4 border-[#FDFD96] border-t-[#FFB347] mx-auto mb-6"></div>
-                                    <h2 className="text-2xl font-bold text-gray-700">L'IA sta creando la magia...</h2>
+                                <div className="py-20 text-center">
+                                    <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-400 mx-auto mb-4"></div>
+                                    <p className="text-xl font-bold text-gray-600">L'IA sta creando i tuoi puzzle...</p>
                                 </div>
                             )}
 
                             {status === 'SUCCESS' && (
-                                <div className="p-10 text-center">
-                                    <h2 className="text-3xl font-bold text-gray-800 mb-4">Escape Room Pronta!</h2>
-                                    <button 
-                                        onClick={() => window.alert("Funzionalità download in arrivo!")}
-                                        className="px-8 py-4 bg-[#FFB347] text-white rounded-full font-bold shadow-md"
-                                    >
-                                        Scarica HTML
-                                    </button>
+                                <div className="py-10 text-center">
+                                    <div className="text-6xl mb-4">✨</div>
+                                    <h2 className="text-2xl font-bold mb-6">Escape Room Creata con Successo!</h2>
+                                    <div className="flex flex-col gap-4">
+                                        <button className="py-3 px-8 bg-blue-400 text-white rounded-full font-bold">Scarica Gioco (HTML)</button>
+                                        <button onClick={() => setStatus('IDLE')} className="text-gray-400 underline">Crea un'altra</button>
+                                    </div>
                                 </div>
                             )}
                         </div>
