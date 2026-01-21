@@ -1,52 +1,98 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Escape Room Generator</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              pastel: {
-                blue: '#AEC6CF',
-                green: '#77DD77',
-                yellow: '#FDFD96',
-                pink: '#FFB3BA',
-                purple: '#B39EB5',
-                orange: '#FFB347',
-              }
-            }
-          }
-        }
-      }
-    </script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-      @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500;600&family=Nunito:wght@400;600;700&display=swap');
-      body {
-        font-family: 'Nunito', sans-serif;
-      }
-      h1, h2, h3, h4, h5, h6 {
-        font-family: 'Fredoka', sans-serif;
-      }
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Nunito:wght@400;700&display=swap');
+        body { font-family: 'Nunito', sans-serif; background-color: #FFF5E4; }
+        h1 { font-family: 'Fredoka', sans-serif; }
     </style>
-  <script type="importmap">
-{
-  "imports": {
-    "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "react": "https://aistudiocdn.com/react@^19.2.0",
-    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0"
-  }
-}
-</script>
-<link rel="stylesheet" href="/index.css">
 </head>
-  <body class="bg-gray-50 text-gray-800">
+<body>
     <div id="root"></div>
-  <script type="module" src="/index.tsx"></script>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // Mock delle icone per farle funzionare senza import complessi
+        const Icon = ({ name, className }) => {
+            useEffect(() => { lucide.createIcons(); }, []);
+            return <i data-lucide={name} className={className}></i>;
+        };
+
+        const App = () => {
+            const [inputText, setInputText] = useState('');
+            const [status, setStatus] = useState('IDLE'); // IDLE, GENERATING, SUCCESS
+
+            const handleGenerate = () => {
+                setStatus('GENERATING');
+                // Simulazione generazione (qui andrebbe la chiamata a Gemini)
+                setTimeout(() => setStatus('SUCCESS'), 2000);
+            };
+
+            return (
+                <div className="min-h-screen p-4 md:p-8">
+                    <div className="max-w-4xl mx-auto">
+                        <header className="mb-10 text-center">
+                            <div className="inline-flex items-center justify-center p-3 bg-white rounded-full shadow-md mb-4">
+                                <h1 className="text-3xl font-bold text-gray-800">Escape Room Generator</h1>
+                            </div>
+                            <p className="text-lg text-gray-500">Trasforma i tuoi testi in avventure interattive.</p>
+                        </header>
+
+                        <div className="bg-white rounded-3xl shadow-xl overflow-hidden border-b-8 border-[#AEC6CF]">
+                            {status === 'IDLE' && (
+                                <div className="p-6 md:p-10">
+                                    <textarea
+                                        className="w-full h-64 p-5 rounded-xl border-2 border-gray-50 bg-gray-50 outline-none text-lg resize-none"
+                                        placeholder="Incolla qui i tuoi appunti..."
+                                        value={inputText}
+                                        onChange={(e) => setInputText(e.target.value)}
+                                    />
+                                    <div className="mt-8 flex justify-end">
+                                        <button
+                                            onClick={handleGenerate}
+                                            className="px-8 py-4 font-bold text-white bg-[#FFB3BA] rounded-full hover:bg-[#ff9aa2] shadow-lg"
+                                        >
+                                            Genera Escape Room
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {status === 'GENERATING' && (
+                                <div className="p-20 text-center">
+                                    <div className="animate-spin rounded-full h-16 w-16 border-4 border-[#FDFD96] border-t-[#FFB347] mx-auto mb-6"></div>
+                                    <h2 className="text-2xl font-bold text-gray-700">L'IA sta creando la magia...</h2>
+                                </div>
+                            )}
+
+                            {status === 'SUCCESS' && (
+                                <div className="p-10 text-center">
+                                    <h2 className="text-3xl font-bold text-gray-800 mb-4">Escape Room Pronta!</h2>
+                                    <button 
+                                        onClick={() => window.alert("Funzionalità download in arrivo!")}
+                                        className="px-8 py-4 bg-[#FFB347] text-white rounded-full font-bold shadow-md"
+                                    >
+                                        Scarica HTML
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
 </body>
 </html>
